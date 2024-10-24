@@ -6,18 +6,25 @@ import { Context } from '../../context/Context';
 const Sidebar = () => {
 
   const [extended, setExtended] = useState(false);
-  const { onSent, prevPrompts, setRecentPrompt, newChat } = useContext(Context);
+  const { onSent, prevPrompts, setPrevPrompts, setRecentPrompt, newChat } = useContext(Context);
 
-  const loadPrompt = async (prompt) =>{
+  const loadPrompt = async (prompt) => {
     setRecentPrompt(prompt);
     await onSent(prompt);
+  }
+
+  const deletePrompt = (index) => {
+    const newPrompts = prevPrompts.filter((_, i) => i !== index);
+    setPrevPrompts(newPrompts);
+    // Also update localStorage to keep it in sync
+    localStorage.setItem("prevPrompts", JSON.stringify(newPrompts));
   }
 
   return (
     <div className='sidebar'>
       <div className='top'>
         <img onClick={() => setExtended(prev => !prev)} className='menu' src={assets.menu_icon} alt='' />
-        <div onClick={()=>newChat()} className='new-chat'>
+        <div onClick={() => newChat()} className='new-chat'>
           <img src={assets.plus_icon} alt="" />
           {extended ? <p>New Chat</p> : null}
         </div>
@@ -28,18 +35,19 @@ const Sidebar = () => {
               Recent
               {prevPrompts.map((item, index) => {
                 return (
-                  <div onClick={()=>loadPrompt(item)} className="recent-entry">
-                    <img src={assets.message_icon} alt="" />
-                    <p>{item.slice(0,15)} ...</p>
+                  <div key={index} className="recent-entry">
+                    <div onClick={() => loadPrompt(item)} className="prompt-text">
+                      <img src={assets.message_icon} alt="" />
+                      <p>{item.slice(0, 15)}...</p>
+                    </div>
+                    <img onClick={()=> deletePrompt(index)} className="delete-button" src={assets.delete_icon} alt="" />
                   </div>
                 )
               })}
             </p>
-
           </div>
           : null
         }
-
       </div>
       <div className='bottom'>
         <div className="bottom-item recent-entry">
